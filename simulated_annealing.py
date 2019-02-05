@@ -36,16 +36,15 @@ class Annealer:
             energyVBSFArr[i] = self.__model.get_energy()
             Etemp = 0
             for k in range(runs_per_temp):
-                # TODO invert the sign of dE
                 T = self.__temps[i]
-                dE = self.__model.get_energy()
-                Etemp += dE
-                if dE < energyVBSFArr[i]:
-                    energyVBSFArr[i] = dE
+                dE = 0 - self.__model.get_energy()
+                Etemp += np.abs(dE)
+                if np.abs(dE) < energyVBSFArr[i]:
+                    energyVBSFArr[i] = np.abs(dE)
                 self.__model.pair_exchange_random()
-                dE = dE - self.__model.get_energy()
+                dE += self.__model.get_energy()
                 # If energy got lower, go to next
-                if dE > 0:
+                if dE < 0:
                     continue
 
                 # calculate the boundary for accepting
@@ -54,7 +53,7 @@ class Annealer:
                 elif T == 0:
                     p = 0
                 else:
-                    p = np.exp(dE/T)
+                    p = np.exp(-dE/T)
                 r = np.random.rand()
                 # If change not accepted, go back to old model
                 if r > p:
