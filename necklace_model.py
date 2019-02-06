@@ -9,7 +9,7 @@ class Necklace:
     More to come later
     """
 
-    def __init__(self, m, n=2,SEED=42):
+    def __init__(self, m, n=2,SEED=0):
         """
         Initializes the necklace model
         :param m: Number of sites in the ring
@@ -33,7 +33,14 @@ class Necklace:
         self._sites[0:int((m*n)/2)] = np.array([1]*int((m*n)/2))  # set the first elements to class one
 
         # shuffle the array to have random initialization
-        np.random.seed(SEED)
+        if SEED > 0:
+            np.random.seed(SEED)
+        self._sites = np.random.permutation(self._sites)
+
+    def shuffle_state(self):
+        """
+        Shuffles the state of the necklace randomly.
+        """
         self._sites = np.random.permutation(self._sites)
 
     def get_energy(self):

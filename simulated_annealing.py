@@ -18,9 +18,9 @@ class Annealer:
     def set_model(self, model):
         self.__model = model
 
-    def run(self,runs_per_temp=1):
+    def run(self,ensemble_size=1):
         """
-        Runs the simulated annealing on the model
+        Runs the simulated annealing on the model. With a given ensemble size.
         :return:
         """
         # Check if all functions/variables are set
@@ -29,24 +29,35 @@ class Annealer:
         if self.__model == 0:
             sys.exit('Annealer: Model not set, use set_model(model)')
 
+        #Create ensemble and choose random initial state for each
+        ensemble = [self.__model]*ensemble_size
+        for k in range(ensemble_size):
+            ensemble[k].shuffle_state()
+
         # Run the simulated annealing method
         energyArr = np.empty(len(self.__temps))
         energyVBSFArr = np.empty(len(self.__temps))
         for i in range(len(self.__temps)):
-            energyVBSFArr[i] = self.__model.get_energy()
-            Etemp = 0
-            for k in range(runs_per_temp):
-                T = self.__temps[i]
-                dE = 0 - self.__model.get_energy()
-                Etemp += np.abs(dE)
+
+            T = self.__temps[i]
+
+            if i == 0:
+                energyVBSFArr[i] = ensemble[0].get_energy()
+            else:
+                energyVBSFArr[i] = energyVBSFArr[i-1]
+
+            e_sum = 0
+            for k in range(ensemble_size):
+                dE = 0 - ensemble[k].get_energy()
+                e_sum += np.abs(dE)
                 if np.abs(dE) < energyVBSFArr[i]:
                     energyVBSFArr[i] = np.abs(dE)
-                self.__model.pair_exchange_random()
-                dE += self.__model.get_energy()
-                # If energy got lower, go to next
+                ensemble[k].pair_exchange_random()
+                dE += ensemble[k].get_energy()
+
+                # Metropolis
                 if dE < 0:
                     continue
-
                 # calculate the boundary for accepting
                 if T == np.inf:
                     p = 1
@@ -58,7 +69,7 @@ class Annealer:
                 # If change not accepted, go back to old model
                 if r > p:
                     self.__model.undo_random_exchange()
-            energyArr[i] = Etemp / runs_per_temp
+            energyArr[i] = e_sum / ensemble_size
         return energyArr,energyVBSFArr
 
 
