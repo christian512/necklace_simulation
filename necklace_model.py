@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+import random
 
 class Necklace:
     """
@@ -35,7 +36,7 @@ class Necklace:
 
         # seed the random generator
         if SEED > 0:
-            np.random.seed(SEED)
+            random.seed = SEED
 
         self.shuffle_state()
 
@@ -46,7 +47,7 @@ class Necklace:
         # set the classes of the nodes
         a = []
         while len(a) < (self.__m*self.__n/2):
-            x = np.random.randint(0,self.__m*self.__n)
+            x = int(self.__m*self.__n*random.random())
             if x not in a:
                 a.append(x)
 
@@ -80,7 +81,7 @@ class Necklace:
         """
 
         # Choose first node for random exchange
-        pos1 = np.random.randint(0,int(self.__m*self.__n))
+        pos1 = int(self.__m*self.__n*random.random())
         if pos1 >= int(self.__m*self.__n/2):
             val_pos1 = (1 << pos1-int(self.__m*self.__n/2)) & self._ext
             # Swap to other class
@@ -94,7 +95,7 @@ class Necklace:
 
         # choose other node until it has another class
         while True:
-            pos2 = np.random.randint(0,int(self.__m*self.__n))
+            pos2 = int(self.__m*self.__n*random.random())
             if pos1 == pos2:
                 continue
 

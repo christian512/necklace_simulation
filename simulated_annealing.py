@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 from necklace_model import Necklace
+import random
 
 
 class Annealer:
@@ -65,7 +66,7 @@ class Annealer:
                     p = 0
                 else:
                     p = np.exp(-dE/T)
-                r = np.random.rand()
+                r = random.random()
                 # If change not accepted, go back to old model
                 if r > p:
                     self.__model.undo_random_exchange()
