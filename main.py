@@ -4,26 +4,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def necklace_test():
-    n = 23
+    n = 3
     MyNecklace = Necklace(n,2)
+    MyNecklace.print()
     for i in range(10000):
-        if MyNecklace.get_energy() not in MyNecklace._allEnergies:
-            print('Energy not in all energies: '+ str(MyNecklace.get_energy()))
-            MyNecklace.print()
-            break
         MyNecklace.pair_exchange_random()
-
+    MyNecklace.print()
 
 def annealer_test():
-    MyNecklace = Necklace(20,2)
+    MyNecklace = Necklace(6,2)
     MyAnnealer = Annealer()
-    temps = np.array([np.inf]*10000)
-    MyAnnealer.set_temps(temps)
     MyAnnealer.set_model(MyNecklace)
-    energyArr = MyAnnealer.run()
-    plt.plot(energyArr)
-    plt.savefig('test.png')
+    MyAnnealer.run_adapted(max_steps=100)
 
 
 if __name__ == '__main__':
-    necklace_test()
+    annealer_test()
