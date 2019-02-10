@@ -30,7 +30,7 @@ class Annealer:
         if self.__model == 0:
             sys.exit('Annealer: Model not set, use set_model(model)')
 
-        #Create ensemble and choose random initial state for each
+        # Create ensemble and choose random initial state for each
         ensemble = [self.__model]*ensemble_size
         for k in range(ensemble_size):
             ensemble[k].shuffle_state()
@@ -73,4 +73,56 @@ class Annealer:
             energyArr[i] = e_sum / ensemble_size
         return energyArr,energyVBSFArr
 
+    def run_adapted(self,ensemble_size=1,start_temp=40,end_temp=0.5,max_steps=9999999):
+        """
+        Running a simulated annealing process with adapted/optimal temperature schedule
+        :param max_steps: Maximum steps before it ends
+        :param ensemble_size: Number of walkers for the process
+        :param start_temp: Start temperature
+        :param end_temp: End temperature
+        :return: Mean energy, Best Energy , Temperature Schedule
+        """
+        if len(self.__temps) > 0:
+            print('Temperatures set with Annealer.set_temps() are not used within Annealer.run_adapted()')
+
+        # Create ensemble and choose random initial state for each
+        ensemble = [self.__model] * ensemble_size
+        for k in range(ensemble_size):
+            ensemble[k].shuffle_state()
+
+        # Initialize Q matrix
+        if self.__model.dims > 1000:
+            print('The used system is very large: Simulated annealer does not include sparse matrix implementation!')
+        Q = np.zeros([self.__model.dims,self.__model.dims],dtype=int)
+
+        # Set temperature, step counter and energy arrays
+        T = start_temp
+        step = 0
+        energies = np.empty(max_steps)
+        energiesVBSF = np.empty(max_steps)
+
+        # Until end is reached
+        while T > end_temp and step < max_steps:
+
+            # Set best energy from before
+            if step == 0:
+                energiesVBSF[step] = ensemble[0].get_energy()
+            else:
+                energiesVBSF[step] = energiesVBSF[step-1]
+
+            e_sum = 0 # For calculating the average energy
+            #For each particle in the ensemble
+            for k in range(ensemble_size):
+                # Perform transition
+                e = ensemble[k].get_energy()
+                cur_state = ensemble[k].get_lumped_index(e)
+                ensemble[k].pair_exchange_random()
+                e_new = ensemble[k].get_energy()
+                new_state = ensemble[k].get_lumped_index(e_new)
+
+                # Add entry in the transition matrix
+                Q[new_state,cur_state] += 1
+
+                # Calculate the probability matrix
+                P = Q / Q.sum(axis=0)
 

@@ -1,7 +1,5 @@
 import sys
 import numpy as np
-import networkx as nx
-import matplotlib.pyplot as plt
 import random
 
 class Necklace:
@@ -32,9 +30,12 @@ class Necklace:
 
         # All energies that the necklace can take
         if self.__m % 2 == 0:
-            self._allEnergies = np.arange(2,self.__m*2+1,2)
+            self.allEnergies = np.arange(2, self.__m * 2 + 1, 2)
         else:
-            self._allEnergies = np.arange(2,self.__m*2+1,1)
+            self.allEnergies = np.arange(2, self.__m * 2 + 1, 1)
+
+        # Set dimension of state space
+        self.dims = len(self.allEnergies)
 
         # Binary representations of ring and sites
         self._ring = 0
@@ -149,6 +150,18 @@ class Necklace:
         else:
             self._ring = self._ring ^ (1 << pos2)
 
+    def get_lumped_index(self,e=0):
+        """
+        Returns the index of the state in the lumped model
+        :param e: Energy of the state, if not set it will be calculated automatically
+        :return:
+        """
+        if e == 0:
+            e = self.get_energy()
+
+        return np.where(self.allEnergies == e)[0][0]
+
+
     def print(self):
         """
         Prints the current config of the necklace
@@ -157,32 +170,5 @@ class Necklace:
         print('ring: ' + bin(self._ring)[2:].zfill(self.__m))
         print('ext:  ' + bin(self._ext)[2:].zfill(self.__m))
 
-    def draw(self,filename,SEED=42):
-        """
-        Draws the necklace model. Not too beautiful right now but works.
-        For color settings in networkx see.
-        https://stackoverflow.com/questions/27030473/how-to-set-colors-for-nodes-in-networkx-python
-        :return:
-        """
-        np.random.seed(SEED)
-        G = nx.Graph()
-        G.add_node(0) # Initial node
-        #Ring connection
-        for i in range(1,self.__m):
-            G.add_node(i)
-            G.add_edge(i-1,i)
-        G.add_edge(0,self.__m-1) # Adds last ring connection
 
-        # Connections to fully connected graphs
-        for i in range(1,self.__n):
-            for j in range(self.__m):
-                G.add_node(j+i*self.__m)
-                G.add_edge(j,j+i*self.__m)
-        #colormap
-        f = lambda x: 'red' if x == 0 else 'blue'
-        cmap = [f(x) for x in self._sites]
-        nx.draw(G,node_color=cmap)
-        plt.text(0,0,'Energy: ' + str(self.get_energy()))
-        plt.savefig(filename)
-        plt.close()
 
