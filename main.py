@@ -4,10 +4,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def necklace_test():
-    n = 5
+    n = 23
     MyNecklace = Necklace(n,2)
-    MyNecklace.print()
-    print(MyNecklace.get_energy())
+    for i in range(10000):
+        if MyNecklace.get_energy() not in MyNecklace._allEnergies:
+            print('Energy not in all energies: '+ str(MyNecklace.get_energy()))
+            MyNecklace.print()
+            break
+        MyNecklace.pair_exchange_random()
+
 
 def annealer_test():
     MyNecklace = Necklace(20,2)

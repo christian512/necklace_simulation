@@ -30,11 +30,17 @@ class Necklace:
         self.__lastPos1 = 0
         self.__lastPos2 = 0
 
-        # binary representations of ring and sites
+        # All energies that the necklace can take
+        if self.__m % 2 == 0:
+            self._allEnergies = np.arange(2,self.__m*2+1,2)
+        else:
+            self._allEnergies = np.arange(2,self.__m*2+1,1)
+
+        # Binary representations of ring and sites
         self._ring = 0
         self._ext = 0
 
-        # seed the random generator
+        # Seed the random generator
         if SEED > 0:
             random.seed = SEED
 
