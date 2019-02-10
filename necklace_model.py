@@ -58,11 +58,11 @@ class Necklace:
             if x not in a:
                 a.append(x)
 
+        self._ring = 0
+        self._ext = 0
+
         for x in a:
-            if x < int(self.__n * self.__m / 2):
-                self._ring ^= 1 << x
-            if x >= int(self.__n * self.__m / 2):
-                self._ext ^= 1 << (x - int(self.__n * self.__m / 2))
+            self.change_class(x)
 
     def get_energy(self):
         """
@@ -81,49 +81,52 @@ class Necklace:
         energy = ext_energy + ring_energy
         return energy
 
+    def val_at_pos(self,pos):
+        """
+        Returns the value/class (0 or 1) at a given position in the necklace
+        :param pos: Position
+        :return: Class of node at position pos
+        """
+        if pos >= self.__m*self.__n:
+            sys.exit('Position in val_at_pos too big!')
+
+        # If position in external ring
+        if pos >= int(self.__m*self.__n/2):
+            pos = pos - int(self.__m*self.__n/2)
+            val = (1 << pos) & self._ext
+        else:
+            val = (1 << pos) & self._ring
+        if val > 0: val = 1
+        return val
+
+    def change_class(self,pos):
+        """
+        Changes the class of node at position pos
+        :param pos: position
+        """
+        if pos >= self.__m*self.__n:
+            sys.exit('Pos too big in change_class!')
+
+        if pos >= self.__m*self.__n/2:
+            pos = pos - int(self.__m*self.__n/2)
+            self._ext = (1 << pos) ^ self._ext
+        else:
+            self._ring = (1 << pos) ^ self._ring
+
     def pair_exchange_random(self):
         """
-        Exchanges two randomly chosen nodes in the necklace.
-        :return: pos1,pos2 / Positions of the two exchanged notes
+        Exchanges the classes of two random nodes in the necklace
+        :return:
         """
-
-        # Choose first node for random exchange
         pos1 = int(self.__m*self.__n*random.random())
-        if pos1 >= int(self.__m*self.__n/2):
-            val_pos1 = (1 << pos1-int(self.__m*self.__n/2)) & self._ext
-            # Swap to other class
-            self._ext = self._ext ^ (1 << pos1-int(self.__m*self.__n/2))
-        else:
-            val_pos1 = (1 << pos1) & self._ring
-            # Swap to other class
-            self._ring = self._ring ^ (1 << pos1)
-
-        if val_pos1 > 0: val_pos1 = 1
-
-        # choose other node until it has another class
-        while True:
+        pos2 = int(self.__m*self.__n*random.random())
+        val1 = self.val_at_pos(pos1)
+        val2 = self.val_at_pos(pos2)
+        while pos1 == pos2 or val1 == val2:
             pos2 = int(self.__m*self.__n*random.random())
-            if pos1 == pos2:
-                continue
+            val2 = self.val_at_pos(pos2)
 
-            #if it is a position in external
-            if pos2 >= int(self.__m * self.__n / 2):
-                #get value of that
-                val_pos2 = (1 << pos2 - int(self.__m * self.__n / 2)) & self._ext
-                if val_pos2 > 0: val_pos2 = 1
-                if val_pos1 != val_pos2: #If two different classes
-                    # Swap to other class
-                    self._ext = self._ext ^ (1 << pos2 - int(self.__m * self.__n / 2))
-                    break
-
-            else:
-                val_pos2 = (1 << pos2) & self._ring
-                if val_pos2 > 0: val_pos2 = 1
-                if val_pos1 != val_pos2:
-                    self._ring = self._ring ^ (1 << pos2)
-                    break
-
-        #Store the last two positions of swapping
+        self.pair_exchange(pos1,pos2)
         self.__lastPos1 = pos1
         self.__lastPos2 = pos2
 
@@ -158,8 +161,15 @@ class Necklace:
         """
         if e == 0:
             e = self.get_energy()
-
-        return np.where(self.allEnergies == e)[0][0]
+        res = np.where(self.allEnergies == e)
+        if len(res[0]) == 0:
+            print('Could not find energy ' + str(e))
+            print('In array: ' + str(self.allEnergies))
+            self.print()
+            self.undo_random_exchange()
+            self.print()
+            sys.exit()
+        return res[0][0]
 
 
     def print(self):
