@@ -103,7 +103,6 @@ class Annealer:
 
         # Until end is reached
         while T > end_temp and step < max_steps:
-
             # Set best energy from before
             if step == 0:
                 energiesVBSF[step] = ensemble[0].get_energy()
@@ -112,20 +111,20 @@ class Annealer:
 
             e_sum = 0 # For calculating the average energy
             #For each particle in the ensemble
-            for k in range(ensemble_size):
+            for l in range(ensemble_size):
                 # Perform transition
-                e_cur = ensemble[k].get_energy()
-                cur_state = ensemble[k].get_lumped_index(e_cur)
-                ensemble[k].pair_exchange_random()
-                e_new = ensemble[k].get_energy()
-                new_state = ensemble[k].get_lumped_index(e_new)
+                e_cur = ensemble[l].get_energy()
+                cur_state = ensemble[l].get_lumped_index(e_cur)
+                ensemble[l].pair_exchange_random()
+                e_new = ensemble[l].get_energy()
+                new_state = ensemble[l].get_lumped_index(e_new)
 
                 # Add entry in the transition matrix
-                Q[new_state,cur_state] += 1
+                Q[new_state, cur_state] += 1
 
                 # Calculate the probability matrix
                 P = Q / Q.sum(axis=0)
-
+                P[np.isnan(P)] = 0
                 # Square P six times to get P^64 -> TODO:Is that enough for n-> infinity?
                 for i in range(6):
                     P = np.matmul(P, P)
@@ -134,10 +133,15 @@ class Annealer:
                 degs = np.sum(P,axis=1) / P.shape[1] # TODO: Is this okay to do?
 
                 # Get all energies
-                energies = ensemble[k].allEnergies
+                energies = ensemble[l].allEnergies
 
                 # Partition function
                 z = np.sum(degs*np.exp(-energies/T))
                 e_mean = 1/z * np.sum(energies * degs * np.exp(-energies/T))
                 c = 1/(T**2*z) * np.sum((energies-e_mean)**2*degs*np.exp(-energies/T))
-                
+
+                # Metropolis algorithm
+
+            step += 1
+            print(degs)
+
