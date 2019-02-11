@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+from scipy.sparse.linalg import eigsh
 from necklace_model import Necklace
 import random
 
@@ -69,13 +70,14 @@ class Annealer:
                 r = random.random()
                 # If change not accepted, go back to old model
                 if r > p:
-                    self.__model.undo_random_exchange()
+                    ensemble[k].undo_random_exchange()
             energyArr[i] = e_sum / ensemble_size
         return energyArr,energyVBSFArr
 
-    def run_adapted(self,ensemble_size=1,start_temp=40,end_temp=0.5,max_steps=9999999):
+    def run_adapted(self,ensemble_size=1,therm_speed=1,start_temp=40,end_temp=0.5,max_steps=9999999):
         """
         Running a simulated annealing process with adapted/optimal temperature schedule
+        :param therm_speed: Thermodynamic speed for the process
         :param max_steps: Maximum steps before it ends
         :param ensemble_size: Number of walkers for the process
         :param start_temp: Start temperature
@@ -98,22 +100,32 @@ class Annealer:
         # Set temperature, step counter and energy arrays
         T = start_temp
         step = 0
-        energies = np.empty(max_steps)
-        energiesVBSF = np.empty(max_steps)
+        energiesArr = np.empty(max_steps) # TODO: Calculate below
+        energiesVBSF = np.empty(max_steps) # TODO: Calculate below
+        temps = np.empty(max_steps) # TODO: Store from below
 
         # Until end is reached
-        while T > end_temp and step < max_steps:
+        while T >= end_temp and step < max_steps:
             # Set best energy from before
             if step == 0:
                 energiesVBSF[step] = ensemble[0].get_energy()
             else:
                 energiesVBSF[step] = energiesVBSF[step-1]
 
+            # Store temperature
+            temps[step] = T
+
             e_sum = 0 # For calculating the average energy
-            #For each particle in the ensemble
+            # For each particle in the ensemble
             for l in range(ensemble_size):
                 # Perform transition
                 e_cur = ensemble[l].get_energy()
+
+                # Energie calculations
+                e_sum += e_cur
+                if e_cur < energiesVBSF[step]:
+                    energiesVBSF[step] = e_cur
+
                 cur_state = ensemble[l].get_lumped_index(e_cur)
                 ensemble[l].pair_exchange_random()
                 e_new = ensemble[l].get_energy()
@@ -122,26 +134,50 @@ class Annealer:
                 # Add entry in the transition matrix
                 Q[new_state, cur_state] += 1
 
-                # Calculate the probability matrix
-                P = Q / Q.sum(axis=0)
-                P[np.isnan(P)] = 0
-                # Square P six times to get P^64 -> TODO:Is that enough for n-> infinity?
-                for i in range(6):
-                    P = np.matmul(P, P)
-
-                # Get degeneracies from P
-                degs = np.sum(P,axis=1) / P.shape[1] # TODO: Is this okay to do?
-
-                # Get all energies
-                energies = ensemble[l].allEnergies
-
-                # Partition function
-                z = np.sum(degs*np.exp(-energies/T))
-                e_mean = 1/z * np.sum(energies * degs * np.exp(-energies/T))
-                c = 1/(T**2*z) * np.sum((energies-e_mean)**2*degs*np.exp(-energies/T))
-
                 # Metropolis algorithm
+                de = e_new - e_cur
+                if de < 0:
+                    continue
+                if T == np.inf:
+                    p = 1
+                elif T == 0:
+                    p = 0
+                else:
+                    p = np.exp(-de/T)
+                r = random.random()
+                if r > p:
+                    ensemble[l].undo_random_exchange()
+            # Store energy
+            energiesArr[step] = e_sum / ensemble_size
+            # Calculate the probability matrix
+            P = Q / Q.sum(axis=0)
+            P[np.isnan(P)] = 0
+            # Square P six times to get P^64 -> TODO:Is 64 = infinity?
+            for i in range(6):
+                P = np.matmul(P, P)
+
+            # Get degeneracies from P
+            degs = np.sum(P,axis=1) / P.shape[1] # TODO: Is this okay to do?
+
+            # Get all energies
+            energies = ensemble[l].allEnergies
+            # TODO: When T approaches zero its getting up again??
+            # Statistical quantities
+            z = np.sum(degs*np.exp(-energies/T))
+            e_mean = 1/z * np.sum(energies * degs * np.exp(-energies/T))
+            heat_cap = 1/(T**2*z) * np.sum((energies-e_mean)**2*degs*np.exp(-energies/T))
+            lambda2 = eigsh(P,2,which='LA')[0][0]
+            if lambda2 > 10**-10:
+                relax_time = -1/np.log(lambda2)
+                # Update temperature
+                T = T * (1-therm_speed/(relax_time*np.sqrt(heat_cap)))
 
             step += 1
-            print(degs)
+
+        if step < max_steps:
+            temps = temps[:step]
+            energiesArr = energiesArr[:step]
+            energiesVBSF = energiesVBSF[:step]
+
+        return energiesArr,energiesVBSF,temps
 

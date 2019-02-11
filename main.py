@@ -12,11 +12,13 @@ def necklace_test():
     MyNecklace.print()
 
 def annealer_test():
-    MyNecklace = Necklace(6,2)
+    MyNecklace = Necklace(20,2)
     MyAnnealer = Annealer()
     MyAnnealer.set_model(MyNecklace)
-    MyAnnealer.run_adapted(max_steps=100)
-
+    energies,energiesVBSF,temps = MyAnnealer.run_adapted(max_steps=10000,ensemble_size=100,therm_speed=10**-4)
+    plt.plot(temps)
+    print(temps)
+    plt.savefig('test.png')
 
 if __name__ == '__main__':
     annealer_test()
