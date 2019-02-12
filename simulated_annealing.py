@@ -149,16 +149,28 @@ class Annealer:
                     ensemble[l].undo_random_exchange()
             # Store energy
             energiesArr[step] = e_sum / ensemble_size
+
             # Calculate the probability matrix
             P = Q / Q.sum(axis=0)
             P[np.isnan(P)] = 0
-            # Square P six times to get P^64 -> TODO:Is 64 = infinity?
-            for i in range(6):
-                P = np.matmul(P, P)
 
+
+
+            # Square P until any row does not change anymore
+            check = False
+            runs = 0
+            while check == False:
+                runs += 1
+                P_new = np.matmul(P, P)
+                dists = np.abs(P-P_new)
+                dists = np.sum(dists,axis=0)
+                dists[dists==0] = np.max(dists)
+                P = P_new
+                if np.min(dists) < 10**-3:
+                    idx = np.argmin(dists)
+                    check = True
             # Get degeneracies from P
-            degs = np.sum(P,axis=1) / P.shape[1] # TODO: Is this okay to do?
-
+            degs = P[:,idx]
             # Get all energies
             energies = ensemble[l].allEnergies
             # TODO: When T approaches zero its getting up again??
@@ -166,11 +178,17 @@ class Annealer:
             z = np.sum(degs*np.exp(-energies/T))
             e_mean = 1/z * np.sum(energies * degs * np.exp(-energies/T))
             heat_cap = 1/(T**2*z) * np.sum((energies-e_mean)**2*degs*np.exp(-energies/T))
-            lambda2 = eigsh(P,2,which='LA')[0][0]
-            if lambda2 > 10**-10:
-                relax_time = -1/np.log(lambda2)
-                # Update temperature
-                T = T * (1-therm_speed/(relax_time*np.sqrt(heat_cap)))
+
+            # Get the second largest eigenvalue for later relaxation time
+            lambda2 = eigsh(P, 2, which='LA')[0][0]
+
+            relax_time = -1/np.log(lambda2)
+            # Update temperature
+            T = T * (1-therm_speed/(relax_time*np.sqrt(heat_cap)))
+
+            if T < 0:
+                print('T = 0 reached. Programm ended')
+                break
 
             step += 1
 
