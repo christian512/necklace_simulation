@@ -197,5 +197,5 @@ class Annealer:
             energiesArr = energiesArr[:step]
             energiesVBSF = energiesVBSF[:step]
 
-        return energiesArr,energiesVBSF,temps
+        return energiesArr,energiesVBSF,temps,degs
 
