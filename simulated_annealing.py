@@ -100,9 +100,9 @@ class Annealer:
         # Set temperature, step counter and energy arrays
         T = start_temp
         step = 0
-        energiesArr = np.empty(max_steps) # TODO: Calculate below
-        energiesVBSF = np.empty(max_steps) # TODO: Calculate below
-        temps = np.empty(max_steps) # TODO: Store from below
+        energiesArr = np.empty(max_steps)
+        energiesVBSF = np.empty(max_steps)
+        temps = np.empty(max_steps)
 
         # Until end is reached
         while T >= end_temp and step < max_steps:
@@ -172,8 +172,7 @@ class Annealer:
             # Get degeneracies from P
             degs = P[:,idx]
             # Get all energies
-            energies = ensemble[l].allEnergies
-            # TODO: When T approaches zero its getting up again??
+            energies = ensemble[0].allEnergies
             # Statistical quantities
             z = np.sum(degs*np.exp(-energies/T))
             e_mean = 1/z * np.sum(energies * degs * np.exp(-energies/T))
