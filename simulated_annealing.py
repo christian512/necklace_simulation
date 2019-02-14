@@ -74,9 +74,10 @@ class Annealer:
             energyArr[i] = e_sum / ensemble_size
         return energyArr,energyVBSFArr
 
-    def run_adapted(self,ensemble_size=1,therm_speed=1,start_temp=40,end_temp=0.5,max_steps=9999999):
+    def run_adapted(self,ensemble_size=1,therm_speed=1,start_temp=40,end_temp=0.5,max_steps=9999999,update_steps=1):
         """
         Running a simulated annealing process with adapted/optimal temperature schedule
+        :param update_steps: Gives the number of steps until the temperature is updated
         :param therm_speed: Thermodynamic speed for the process
         :param max_steps: Maximum steps before it ends
         :param ensemble_size: Number of walkers for the process
@@ -150,6 +151,11 @@ class Annealer:
             # Store energy
             energiesArr[step] = e_sum / ensemble_size
 
+            # Check if temperature needs update
+            if step % update_steps != 0:
+                step += 1
+                continue
+
             # Calculate the probability matrix
             P = Q / Q.sum(axis=0)
             P[np.isnan(P)] = 0
@@ -175,6 +181,10 @@ class Annealer:
             energies = ensemble[0].allEnergies
             # Statistical quantities
             z = np.sum(degs*np.exp(-energies/T))
+            if z == 0:
+                step += 1
+                continue
+
             e_mean = 1/z * np.sum(energies * degs * np.exp(-energies/T))
             heat_cap = 1/(T**2*z) * np.sum((energies-e_mean)**2*degs*np.exp(-energies/T))
 
