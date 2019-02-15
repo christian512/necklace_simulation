@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 import random
+from scipy.special import binom
 
 class Necklace:
     """
@@ -34,8 +35,9 @@ class Necklace:
         else:
             self.allEnergies = np.arange(2, self.__m * 2 + 1, 1)
 
-        # Set dimension of state space
-        self.dims = len(self.allEnergies)
+        # Set dimension of state space and lumped state space
+        self.dims_states = binom(int(self.__m*self.__n),int(self.__m*self.__n/2))
+        self.dims_lumped = len(self.allEnergies)
 
         # Binary representations of ring and sites
         self._ring = 0
@@ -63,6 +65,7 @@ class Necklace:
 
         for x in a:
             self.change_class(x)
+
 
     def get_energy(self):
         """
@@ -170,6 +173,16 @@ class Necklace:
             self.print()
             sys.exit()
         return res[0][0]
+
+    def get_free_energy(self,degeneracies):
+        """
+        Gets the current free energy of the necklace
+        :return: Free energy
+        """
+        energy = self.get_energy()
+        idx = self.get_lumped_index(e=energy)
+        deg = degeneracies[idx]
+        # TODO: deg is currently normalized, should multiply total number of states for real degs?
 
 
     def print(self):

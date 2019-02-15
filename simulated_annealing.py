@@ -94,9 +94,9 @@ class Annealer:
             ensemble[k].shuffle_state()
 
         # Initialize Q matrix
-        if self.__model.dims > 1000:
+        if self.__model.dims_lumped > 1000:
             print('The used system is very large: Simulated annealer does not include sparse matrix implementation!')
-        Q = np.zeros([self.__model.dims,self.__model.dims],dtype=int)
+        Q = np.zeros([self.__model.dims_lumped,self.__model.dims_lumped],dtype=int)
 
         # Set temperature, step counter and energy arrays
         T = start_temp
