@@ -89,9 +89,11 @@ class Annealer:
             print('Temperatures set with Annealer.set_temps() are not used within Annealer.run_adapted()')
 
         # Create ensemble and choose random initial state for each
-        ensemble = [self.__model] * ensemble_size
+        ensemble = []
         for k in range(ensemble_size):
-            ensemble[k].shuffle_state()
+            nkl = self.__model.get_copy()
+            nkl.shuffle_state()
+            ensemble.append(nkl)
 
         # Initialize Q matrix
         if self.__model.dims_lumped > 1000:

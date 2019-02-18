@@ -223,6 +223,10 @@ class Necklace:
         randInt = int(self.__m*self.__n*random.random())
         self.change_class(randInt)
 
+    def get_copy(self):
+        return Necklace(self.__m,self.__n)
+
+
 if __name__ == '__main__':
     nkl = Necklace(4,2)
     nkl2 = Necklace(4,2)
