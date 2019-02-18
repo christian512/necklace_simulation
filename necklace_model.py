@@ -210,13 +210,18 @@ class Necklace:
         """
         randInt = int((self.__m*self.__n-2)*random.random())+1
         swap_pos = np.arange(randInt,self.__m*self.__n,dtype=int)
-        print('swap positions: ' + str(swap_pos))
         for x in swap_pos:
             if self.val_at_pos(x) != nkl.val_at_pos(x):
                 self.change_class(x)
                 nkl.change_class(x)
         return nkl
 
+    def mutate(self):
+        """
+        Mutates a random bit of the necklaces to the other class
+        """
+        randInt = int(self.__m*self.__n*random.random())
+        self.change_class(randInt)
 
 if __name__ == '__main__':
     nkl = Necklace(4,2)
@@ -224,6 +229,6 @@ if __name__ == '__main__':
     nkl.print(inline=True)
     nkl2.print(inline=True)
     print('+++ Crossover +++')
-    nkl2 = nkl.crossover(nkl2)
+    nkl.crossover(nkl2)
     nkl.print(inline=True)
     nkl2.print(inline=True)
