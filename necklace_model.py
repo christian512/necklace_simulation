@@ -189,13 +189,18 @@ class Necklace:
         deg = degeneracies[idx]
         # TODO: deg is currently normalized, should multiply total number of states for real degs?
 
-    def print(self):
+    def print(self,inline=False):
         """
         Prints the current config of the necklace
         :return:
         """
-        print('ring: ' + bin(self._ring)[2:].zfill(self.__m))
-        print('ext:  ' + bin(self._ext)[2:].zfill(self.__m))
+        if inline:
+            out = bin(self._ring)[2:].zfill(self.__m)[::-1]
+            out += bin(self._ext)[2:].zfill(self.__m)[::-1]
+            print('nkl: ' + out)
+        else:
+            print('ring: ' + bin(self._ring)[2:].zfill(self.__m)[::-1])
+            print('ext:  ' + bin(self._ext)[2:].zfill(self.__m)[::-1])
 
     def crossover(self,nkl):
         """
@@ -205,13 +210,20 @@ class Necklace:
         """
         randInt = int((self.__m*self.__n-2)*random.random())+1
         swap_pos = np.arange(randInt,self.__m*self.__n,dtype=int)
+        print('swap positions: ' + str(swap_pos))
         for x in swap_pos:
-            self.change_class(x)
-            nkl.change_class(x)
+            if self.val_at_pos(x) != nkl.val_at_pos(x):
+                self.change_class(x)
+                nkl.change_class(x)
         return nkl
 
 
 if __name__ == '__main__':
     nkl = Necklace(4,2)
-    print(nkl.get_energy())
-    nkl.print()
+    nkl2 = Necklace(4,2)
+    nkl.print(inline=True)
+    nkl2.print(inline=True)
+    print('+++ Crossover +++')
+    nkl2 = nkl.crossover(nkl2)
+    nkl.print(inline=True)
+    nkl2.print(inline=True)
