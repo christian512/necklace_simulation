@@ -66,22 +66,27 @@ class Necklace:
         for x in a:
             self.change_class(x)
 
-
     def get_energy(self):
         """
         Faster method for getting the energy
         :return: Energy of the current necklace setup
         """
 
-        # connection of ring with external
+        # Connection of ring with external
         ext_energy = bin(self._ring ^ self._ext).count('1')
-        # connections in the ring
+
+        # Connections in the ring
         ring_string = bin(self._ring)[2:].zfill(self.__m)
         shift_string = ring_string[-1] + ring_string[:-1]
         shifted_ring = int(shift_string,2)
         ring_energy = bin(self._ring ^ shifted_ring).count('1')
 
-        energy = ext_energy + ring_energy
+        # Give a quadratic energy penalty if the number of nodes of both classes is not equal
+        c1 = bin(self._ring).count('1') + bin(self._ext).count('1')
+        c1_exp = int(self.__m*self.__n/2)
+
+        # Sum energy and return
+        energy = ext_energy + ring_energy + (c1-c1_exp)**2
         return energy
 
     def val_at_pos(self,pos):
@@ -184,7 +189,6 @@ class Necklace:
         deg = degeneracies[idx]
         # TODO: deg is currently normalized, should multiply total number of states for real degs?
 
-
     def print(self):
         """
         Prints the current config of the necklace
@@ -194,4 +198,7 @@ class Necklace:
         print('ext:  ' + bin(self._ext)[2:].zfill(self.__m))
 
 
-
+if __name__ == '__main__':
+    nkl = Necklace(4,2)
+    print(nkl.get_energy())
+    nkl.print()
