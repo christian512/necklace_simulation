@@ -224,7 +224,11 @@ class Necklace:
         self.change_class(randInt)
 
     def get_copy(self):
-        return Necklace(self.__m,self.__n)
+        """Returns a copy of it self."""
+        nkl = Necklace(self.__m,self.__n)
+        nkl._ring = self._ring
+        nkl._ext = self._ext
+        return nkl
 
 
 if __name__ == '__main__':
