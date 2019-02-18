@@ -68,7 +68,7 @@ class Necklace:
 
     def get_energy(self):
         """
-        Faster method for getting the energy
+        Method for getting the energy of the current necklace setup
         :return: Energy of the current necklace setup
         """
 
@@ -196,6 +196,19 @@ class Necklace:
         """
         print('ring: ' + bin(self._ring)[2:].zfill(self.__m))
         print('ext:  ' + bin(self._ext)[2:].zfill(self.__m))
+
+    def crossover(self,nkl):
+        """
+        Performs a crossing (genetic algorithm) of two necklaces
+        :param nkl: Other necklace
+        :return: New second necklace
+        """
+        randInt = int((self.__m*self.__n-2)*random.random())+1
+        swap_pos = np.arange(randInt,self.__m*self.__n,dtype=int)
+        for x in swap_pos:
+            self.change_class(x)
+            nkl.change_class(x)
+        return nkl
 
 
 if __name__ == '__main__':
