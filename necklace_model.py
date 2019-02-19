@@ -230,6 +230,18 @@ class Necklace:
         nkl._ext = self._ext
         return nkl
 
+    def expand(self,nbits=5):
+        """
+        Expand integers of _site and _ext that each node is represented by nbits bits.
+        :return:
+        """
+    def collapse(self,nbits=5):
+        """
+        Collapse the integers _site and _ext back that each node is again represented by one bit
+        And return model, NOT CHANGE SELF
+        :param nbits:
+        :return:
+        """
 
 if __name__ == '__main__':
     nkl = Necklace(4,2)
