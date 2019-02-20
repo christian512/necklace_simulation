@@ -291,12 +291,41 @@ class Necklace:
             if count1 > int(self.__expanded_bits/2):
                 self._ext += 1
 
+    def class_at_pos_expanded(self,pos):
+        """Checks the class of the bit at given pos in expanded representation"""
+        if pos >= self.__m*self.__n*self.__expanded_bits:
+            sys.exit('Position in val_at_pos too big!')
+
+        # If position in external ring
+        if pos >= int(self.__m*self.__n/2*self.__expanded_bits):
+            pos = pos - int(self.__m*self.__n/2*self.__expanded_bits)
+            val = (1 << pos) & self._ext_expanded
+        else:
+            val = (1 << pos) & self._ring_expanded
+        if val > 0: val = 1
+        return val
+
+    def change_class_expanded(self,pos):
+        """
+        :param pos:
+        :return:
+        """
+        if pos >= self.__m*self.__n*self.__expanded_bits:
+            sys.exit('Pos too big in change_class!')
+
+        if pos >= self.__m*self.__n/2*self.__expanded_bits:
+            pos = pos - int(self.__m*self.__n/2*self.__expanded_bits)
+            self._ext_expanded = (1 << pos) ^ self._ext_expanded
+        else:
+            self._ring_expanded = (1 << pos) ^ self._ring_expanded
+
+        # Update state integers
+        self.collapse()
 
 
 if __name__ == '__main__':
     nkl = Necklace(4,2)
     nkl.expand(nbits=5)
     nkl.print(expanded=True)
-    nkl.collapse()
     nkl.print(expanded=True)
 
