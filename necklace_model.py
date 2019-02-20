@@ -322,6 +322,27 @@ class Necklace:
         # Update state integers
         self.collapse()
 
+    def mutate_expanded(self):
+        """
+        Mutates a random bit in the expanded states and calculates new collapsed states.
+        """
+        randInt = int(self.__m*self.__n*self.__expanded_bits*random.random())
+        self.change_class_expanded(randInt)
+        self.collapse()
+
+    def crossover_expanded(self,nkl):
+        """Generates the crossover of two expanded necklaces"""
+        randInt = int((self.__m * self.__n * self.__expanded_bits - 2) * random.random()) + 1
+        swap_pos = np.arange(randInt, self.__m * self.__n*self.__expanded_bits, dtype=int)
+        for x in swap_pos:
+            if self.class_at_pos_expanded(x) != nkl.class_at_pos_expanded(x):
+                self.change_class_expanded(x)
+                nkl.change_class_expanded(x)
+        # Update collapsed necklace states
+        self.collapse()
+        nkl.collapse()
+
+        return nkl
 
 if __name__ == '__main__':
     nkl = Necklace(4,2)
