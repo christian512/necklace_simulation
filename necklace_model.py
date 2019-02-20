@@ -43,6 +43,11 @@ class Necklace:
         self._ring = 0
         self._ext = 0
 
+        # Binary representations of expanded ring and sites
+        self._ring_expanded = -1
+        self._ext_expanded = -1
+        self.__expanded_bits = 0
+
         # Seed the random generator
         if SEED > 0:
             random.seed = SEED
@@ -189,7 +194,7 @@ class Necklace:
         deg = degeneracies[idx]
         # TODO: deg is currently normalized, should multiply total number of states for real degs?
 
-    def print(self,inline=False):
+    def print(self,inline=False,expanded=False):
         """
         Prints the current config of the necklace
         :return:
@@ -201,6 +206,10 @@ class Necklace:
         else:
             print('ring: ' + bin(self._ring)[2:].zfill(self.__m)[::-1])
             print('ext:  ' + bin(self._ext)[2:].zfill(self.__m)[::-1])
+
+        if expanded:
+            print('exp_ring: ' + bin(self._ring_expanded)[2:].zfill(self.__m*self.__expanded_bits)[::-1])
+            print('exp_ext:  ' + bin(self._ext_expanded)[2:].zfill(self.__m*self.__expanded_bits)[::-1])
 
     def crossover(self,nkl):
         """
@@ -233,22 +242,61 @@ class Necklace:
     def expand(self,nbits=5):
         """
         Expand integers of _site and _ext that each node is represented by nbits bits.
-        :return:
         """
-    def collapse(self,nbits=5):
+        self.__expanded_bits = nbits
+        self._ring_expanded = 0
+        self._ext_expanded = 0
+        # Ring expansion
+        for i in range(self.__m-1,-1,-1):
+            for k in range(nbits):
+                self._ring_expanded = self._ring_expanded << 1
+                if self.val_at_pos(i) == 1:
+                    self._ring_expanded += 1
+        # Externals expansion
+        if self.__n > 0:
+            for i in range(self.__m-1,-1,-1):
+                for k in range(nbits):
+                    self._ext_expanded = self._ext_expanded << 1
+                    if self.val_at_pos(i+self.__m):
+                        self._ext_expanded += 1
+
+    def collapse(self):
         """
         Collapse the integers _site and _ext back that each node is again represented by one bit
-        And return model, NOT CHANGE SELF
-        :param nbits:
-        :return:
         """
+        # Check if necklace was expanded
+        if self.__expanded_bits == 0:
+            print('Necklace was never expanded')
+            return
+
+        # Reset collapsed state integers
+        self._ring = 0
+        self._ext = 0
+
+        # collapse ring
+        s = bin(self._ring_expanded)[2:].zfill(self.__m*self.__expanded_bits)
+        for i in range(0,self.__m*self.__expanded_bits,self.__expanded_bits):
+            count1 = s[i:i+self.__expanded_bits].count('1')
+            self._ring = self._ring << 1
+            if count1 > int(self.__expanded_bits/2):
+                self._ring += 1
+        # Check if external exists
+        if self.__n < 2:
+            return
+        # collapse externals
+        s = bin(self._ext_expanded)[2:].zfill(self.__m*self.__expanded_bits)
+        for i in range(0,self.__m*self.__expanded_bits,self.__expanded_bits):
+            count1 = s[i:i+self.__expanded_bits].count('1')
+            self._ext = self._ext << 1
+            if count1 > int(self.__expanded_bits/2):
+                self._ext += 1
+
+
 
 if __name__ == '__main__':
     nkl = Necklace(4,2)
-    nkl2 = Necklace(4,2)
-    nkl.print(inline=True)
-    nkl2.print(inline=True)
-    print('+++ Crossover +++')
-    nkl.crossover(nkl2)
-    nkl.print(inline=True)
-    nkl2.print(inline=True)
+    nkl.expand(nbits=5)
+    nkl.print(expanded=True)
+    nkl.collapse()
+    nkl.print(expanded=True)
+
