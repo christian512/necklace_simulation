@@ -6,7 +6,6 @@ from scipy.special import binom
 class Necklace:
     """
     A class that simulates the behavior of necklace models.
-    TODO: Add shuffle state for expanded ndoes
     """
 
     def __init__(self, m, n=2,SEED=0):
