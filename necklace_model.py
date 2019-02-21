@@ -6,7 +6,7 @@ from scipy.special import binom
 class Necklace:
     """
     A class that simulates the behavior of necklace models.
-    More to come later
+    TODO: Add shuffle state for expanded ndoes
     """
 
     def __init__(self, m, n=2,SEED=0):
@@ -237,6 +237,8 @@ class Necklace:
         nkl = Necklace(self.__m,self.__n)
         nkl._ring = self._ring
         nkl._ext = self._ext
+        nkl._ring_expanded = self._ring_expanded
+        nkl._ext_expanded = self._ext_expanded
         return nkl
 
     def expand(self,nbits=5):
@@ -341,12 +343,13 @@ class Necklace:
         # Update collapsed necklace states
         self.collapse()
         nkl.collapse()
-
         return nkl
 
 if __name__ == '__main__':
     nkl = Necklace(4,2)
+    nkl2 = Necklace(4,2)
+    nkl2.expand(nbits=5)
     nkl.expand(nbits=5)
-    nkl.print(expanded=True)
+    for i in range(20): nkl.mutate_expanded()
     nkl.print(expanded=True)
 
