@@ -356,7 +356,7 @@ class Necklace:
         # Get positions to set to one
         a = []
         while len(a) < self.__m*self.__n*self._expanded_bits/2:
-            x = int(self.__m*self.__n*self._expanded_bits)*random.random()
+            x = int(self.__m*self.__n*self._expanded_bits*random.random())
             if x not in a:
                 a.append(x)
         # Set the expanded states to nothing
@@ -371,10 +371,9 @@ class Necklace:
 
 
 if __name__ == '__main__':
-    nkl = Necklace(4,2)
-    nkl2 = Necklace(4,2)
-    nkl2.expand(nbits=5)
-    nkl.expand(nbits=5)
-    for i in range(20): nkl.mutate_expanded()
-    nkl.print(expanded=True)
+    nkl = Necklace(20,2)
+    e = nkl.get_energy()
+    for i in range(20):
+        nkl.mutate()
+        print(nkl.get_energy())
 
