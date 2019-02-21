@@ -46,7 +46,7 @@ class Necklace:
         # Binary representations of expanded ring and sites
         self._ring_expanded = -1
         self._ext_expanded = -1
-        self.__expanded_bits = 0
+        self._expanded_bits = 0
 
         # Seed the random generator
         if SEED > 0:
@@ -208,8 +208,8 @@ class Necklace:
             print('ext:  ' + bin(self._ext)[2:].zfill(self.__m)[::-1])
 
         if expanded:
-            print('exp_ring: ' + bin(self._ring_expanded)[2:].zfill(self.__m*self.__expanded_bits)[::-1])
-            print('exp_ext:  ' + bin(self._ext_expanded)[2:].zfill(self.__m*self.__expanded_bits)[::-1])
+            print('exp_ring: ' + bin(self._ring_expanded)[2:].zfill(self.__m * self._expanded_bits)[::-1])
+            print('exp_ext:  ' + bin(self._ext_expanded)[2:].zfill(self.__m * self._expanded_bits)[::-1])
 
     def crossover(self,nkl):
         """
@@ -239,13 +239,14 @@ class Necklace:
         nkl._ext = self._ext
         nkl._ring_expanded = self._ring_expanded
         nkl._ext_expanded = self._ext_expanded
+        nkl._expanded_bits = self._expanded_bits
         return nkl
 
     def expand(self,nbits=5):
         """
         Expand integers of _site and _ext that each node is represented by nbits bits.
         """
-        self.__expanded_bits = nbits
+        self._expanded_bits = nbits
         self._ring_expanded = 0
         self._ext_expanded = 0
         # Ring expansion
@@ -267,7 +268,7 @@ class Necklace:
         Collapse the integers _site and _ext back that each node is again represented by one bit
         """
         # Check if necklace was expanded
-        if self.__expanded_bits == 0:
+        if self._expanded_bits == 0:
             print('Necklace was never expanded')
             return
 
@@ -276,31 +277,31 @@ class Necklace:
         self._ext = 0
 
         # collapse ring
-        s = bin(self._ring_expanded)[2:].zfill(self.__m*self.__expanded_bits)
-        for i in range(0,self.__m*self.__expanded_bits,self.__expanded_bits):
-            count1 = s[i:i+self.__expanded_bits].count('1')
+        s = bin(self._ring_expanded)[2:].zfill(self.__m * self._expanded_bits)
+        for i in range(0,self.__m*self._expanded_bits, self._expanded_bits):
+            count1 = s[i:i+self._expanded_bits].count('1')
             self._ring = self._ring << 1
-            if count1 > int(self.__expanded_bits/2):
+            if count1 > int(self._expanded_bits / 2):
                 self._ring += 1
         # Check if external exists
         if self.__n < 2:
             return
         # collapse externals
-        s = bin(self._ext_expanded)[2:].zfill(self.__m*self.__expanded_bits)
-        for i in range(0,self.__m*self.__expanded_bits,self.__expanded_bits):
-            count1 = s[i:i+self.__expanded_bits].count('1')
+        s = bin(self._ext_expanded)[2:].zfill(self.__m * self._expanded_bits)
+        for i in range(0,self.__m*self._expanded_bits, self._expanded_bits):
+            count1 = s[i:i+self._expanded_bits].count('1')
             self._ext = self._ext << 1
-            if count1 > int(self.__expanded_bits/2):
+            if count1 > int(self._expanded_bits / 2):
                 self._ext += 1
 
     def class_at_pos_expanded(self,pos):
         """Checks the class of the bit at given pos in expanded representation"""
-        if pos >= self.__m*self.__n*self.__expanded_bits:
+        if pos >= self.__m*self.__n*self._expanded_bits:
             sys.exit('Position in val_at_pos too big!')
 
         # If position in external ring
-        if pos >= int(self.__m*self.__n/2*self.__expanded_bits):
-            pos = pos - int(self.__m*self.__n/2*self.__expanded_bits)
+        if pos >= int(self.__m*self.__n/2*self._expanded_bits):
+            pos = pos - int(self.__m * self.__n / 2 * self._expanded_bits)
             val = (1 << pos) & self._ext_expanded
         else:
             val = (1 << pos) & self._ring_expanded
@@ -312,11 +313,11 @@ class Necklace:
         :param pos:
         :return:
         """
-        if pos >= self.__m*self.__n*self.__expanded_bits:
+        if pos >= self.__m*self.__n*self._expanded_bits:
             sys.exit('Pos too big in change_class!')
 
-        if pos >= self.__m*self.__n/2*self.__expanded_bits:
-            pos = pos - int(self.__m*self.__n/2*self.__expanded_bits)
+        if pos >= self.__m*self.__n/2*self._expanded_bits:
+            pos = pos - int(self.__m * self.__n / 2 * self._expanded_bits)
             self._ext_expanded = (1 << pos) ^ self._ext_expanded
         else:
             self._ring_expanded = (1 << pos) ^ self._ring_expanded
@@ -328,14 +329,14 @@ class Necklace:
         """
         Mutates a random bit in the expanded states and calculates new collapsed states.
         """
-        randInt = int(self.__m*self.__n*self.__expanded_bits*random.random())
+        randInt = int(self.__m * self.__n * self._expanded_bits * random.random())
         self.change_class_expanded(randInt)
         self.collapse()
 
     def crossover_expanded(self,nkl):
         """Generates the crossover of two expanded necklaces"""
-        randInt = int((self.__m * self.__n * self.__expanded_bits - 2) * random.random()) + 1
-        swap_pos = np.arange(randInt, self.__m * self.__n*self.__expanded_bits, dtype=int)
+        randInt = int((self.__m * self.__n * self._expanded_bits - 2) * random.random()) + 1
+        swap_pos = np.arange(randInt, self.__m * self.__n * self._expanded_bits, dtype=int)
         for x in swap_pos:
             if self.class_at_pos_expanded(x) != nkl.class_at_pos_expanded(x):
                 self.change_class_expanded(x)
@@ -344,6 +345,30 @@ class Necklace:
         self.collapse()
         nkl.collapse()
         return nkl
+
+    def shuffle_expanded(self):
+        """
+        Shuffles the expanded integers
+        """
+        if self._expanded_bits == 0:
+            print('Necklace was never expanded!')
+            return
+        # Get positions to set to one
+        a = []
+        while len(a) < self.__m*self.__n*self._expanded_bits/2:
+            x = int(self.__m*self.__n*self._expanded_bits)*random.random()
+            if x not in a:
+                a.append(x)
+        # Set the expanded states to nothing
+        self._ring_expanded = 0
+        self._ext_expanded = 0
+        # Change classes of half of the state
+        for x in a:
+            self.change_class_expanded(x)
+
+
+
+
 
 if __name__ == '__main__':
     nkl = Necklace(4,2)
