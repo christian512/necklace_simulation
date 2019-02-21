@@ -37,14 +37,11 @@ class GeneticAlgorithm():
             idx_cross1 = random.sample(range(0,population_size),int(crossover_rate/2*population_size))
             idx_cross2 = random.sample(range(0,population_size),int(crossover_rate/2*population_size))
             for i,j in zip(idx_cross1,idx_cross2):
-                population.append(population[i].get_copy())
-                population.append(population[j].get_copy())
                 population[i].crossover(population[j])
 
             # Mutants
             idx_mutants = random.sample(range(0,population_size),int(mutation_rate*population_size))
             for i in idx_mutants:
-                population.append(population[i].get_copy())
                 population[i].mutate()
 
             # Clone the individuals with lowest energy
@@ -64,6 +61,7 @@ class GeneticAlgorithm():
                 sum_energy += pop_energies[sort_idx[i]]
             population = new_generation
 
+
             # Set energies
             energiesArr[o] = sum_energy / population_size
             if o == 0: energiesVBSFArr[o] = np.min(pop_energies)
@@ -81,8 +79,8 @@ class GeneticAlgorithm():
         population = []
         for k in range(population_size):
             nkl = self.__model.get_copy()
-            nkl.shuffle_state()
             nkl.expand()
+            nkl.shuffle_expanded()
             population.append(nkl)
         # Arrays for storing energy
         energiesArr = np.empty(num_gens)
@@ -95,14 +93,11 @@ class GeneticAlgorithm():
             idx_cross1 = random.sample(range(0,population_size),int(crossover_rate/2*population_size))
             idx_cross2 = random.sample(range(0,population_size),int(crossover_rate/2*population_size))
             for i,j in zip(idx_cross1,idx_cross2):
-                population.append(population[i].get_copy())
-                population.append(population[j].get_copy())
-                population[i].crossover_expanded(population[j])
+                population[j] = population[i].crossover_expanded(population[j])
 
             # Mutants
             idx_mutants = random.sample(range(0,population_size),int(mutation_rate*population_size))
             for i in idx_mutants:
-                population.append(population[i].get_copy())
                 population[i].mutate_expanded()
 
             # Clone the individuals with lowest energy
@@ -135,7 +130,7 @@ if __name__ == '__main__':
     nkl = Necklace(20,2)
     ga = GeneticAlgorithm()
     ga.set_model(nkl)
-    energies,energiesVBSF = ga.run_expanded(population_size=1000,num_gens=100,clone_rate=1,crossover_rate=0.5,mutation_rate=0.5)
+    energies,energiesVBSF = ga.run_expanded(population_size=1000,num_gens=200,clone_rate=0.5,crossover_rate=0.1,mutation_rate=0.5)
     plt.plot(energies)
     plt.savefig('test.png')
     plt.close()
